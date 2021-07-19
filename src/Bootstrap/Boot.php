@@ -10,16 +10,14 @@ class Boot
     public function __construct(
         private Request $request,
         private RoutesBoot $routesBoot,
-        private CustomRoutesBoot $customRoutesBoot,
     ) {
     }
 
     public function boot(): void
     {
-        $this->customRoutesBoot->boot();
+        RestifyBeforeEach::dispatch($this->request);
 
-        if (isRestify($request = $this->request)) {
-            RestifyBeforeEach::dispatch($request);
+        if (isRestify($this->request)) {
             $this->routesBoot->boot();
         }
     }

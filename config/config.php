@@ -47,6 +47,8 @@ return [
         'password_reset_url' => env('FRONTEND_APP_URL').'/password/reset?token={token}&email={email}',
 
         'user_verify_url' => env('FRONTEND_APP_URL').'/verify/{id}/{emailHash}',
+
+        'user_model' => \Illuminate\Foundation\Auth\User::class,
     ],
 
     /*

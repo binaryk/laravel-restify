@@ -2,6 +2,7 @@
 
 namespace Binaryk\LaravelRestify;
 
+use Binaryk\LaravelRestify\Events\AddedRepositories;
 use Binaryk\LaravelRestify\Events\RestifyBeforeEach;
 use Binaryk\LaravelRestify\Events\RestifyStarting;
 use Binaryk\LaravelRestify\Http\Requests\RestifyRequest;
@@ -95,6 +96,9 @@ class Restify
         static::$repositories = array_unique(
             array_merge(static::$repositories, $repositories)
         );
+
+
+        event(new AddedRepositories($repositories));
 
         return new static;
     }
@@ -204,11 +208,6 @@ class Restify
         }
 
         return Str::title(Str::snake($value, ' '));
-    }
-
-    public static function mountingRepositories(): void
-    {
-        collect(static::$repositories)->each(fn (string $repository) => $repository::mounting());
     }
 
     public static function actionLog(): ActionLog

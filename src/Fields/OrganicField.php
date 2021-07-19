@@ -12,6 +12,8 @@ abstract class OrganicField extends BaseField
 
     public $canUpdateCallback;
 
+    public $canPatchCallback;
+
     public $canUpdateBulkCallback;
 
     public $canStoreCallback;
@@ -121,6 +123,11 @@ abstract class OrganicField extends BaseField
         return $this->canUpdateCallback ? call_user_func($this->canUpdateCallback, $request) : true;
     }
 
+    public function authorizedToPatch(Request $request)
+    {
+        return $this->canPatchCallback ? call_user_func($this->canPatchCallback, $request) : true;
+    }
+
     public function authorizedToUpdateBulk(Request $request)
     {
         return $this->canUpdateBulkCallback ? call_user_func($this->canUpdateBulkCallback, $request) : true;
@@ -141,6 +148,13 @@ abstract class OrganicField extends BaseField
     public function canUpdate(Closure $callback)
     {
         $this->canUpdateCallback = $callback;
+
+        return $this;
+    }
+
+    public function canPatch(Closure $callback)
+    {
+        $this->canPatchCallback = $callback;
 
         return $this;
     }

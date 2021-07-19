@@ -4,6 +4,7 @@ namespace Binaryk\LaravelRestify\Actions;
 
 use Binaryk\LaravelRestify\Http\Requests\ActionRequest;
 use Binaryk\LaravelRestify\Http\Requests\RestifyRequest;
+use Binaryk\LaravelRestify\Models\ActionLog;
 use Binaryk\LaravelRestify\Restify;
 use Binaryk\LaravelRestify\Traits\AuthorizedToSee;
 use Binaryk\LaravelRestify\Traits\Make;
@@ -147,16 +148,24 @@ abstract class Action implements JsonSerializable
             $request->collectRepositories($this, static::$chunkCount, function ($models) use ($request, &$response) {
                 Transaction::run(function () use ($models, $request, &$response) {
                     $response = $this->handle($request, $models);
+
+                    $models->each(fn (Model $model) => ActionLog::forRepositoryAction($this, $model, $request->user())->save());
                 });
             });
         } else {
             Transaction::run(function () use ($request, &$response) {
                 $response = $this->handle(
                     $request,
-                    tap($request->modelQuery(), function ($query) use ($request) {
+                    $model = tap($request->modelQuery(), function ($query) use ($request) {
                         static::indexQuery($request, $query);
                     })->firstOrFail()
                 );
+
+                Restify::actionLog()::forRepositoryAction(
+                    $this,
+                    $model,
+                    $request->user()
+                )->save();
             });
         }
 

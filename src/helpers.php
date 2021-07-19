@@ -19,10 +19,10 @@ if (! function_exists('isRestify')) {
 }
 
 if (! function_exists('data')) {
-    function data($data): JsonResponse
+    function data(mixed $data = [], int $status = 200, array $headers = [], $options = 0): JsonResponse
     {
         return response()->json([
             'data' => $data,
-        ]);
+        ], $status, $headers, $options);
     }
 }

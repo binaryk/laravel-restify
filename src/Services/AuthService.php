@@ -36,9 +36,9 @@ class AuthService
         return RegisterService::make($request, $this);
     }
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(Request $request, string $url = null)
     {
-        return ForgotPasswordService::make($request);
+        return ForgotPasswordService::make($request, $url);
     }
 
     /*

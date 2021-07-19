@@ -23,6 +23,13 @@ class FieldCollection extends Collection
         })->values();
     }
 
+    public function authorizedPatch(Request $request): self
+    {
+        return $this->filter(function (OrganicField $field) use ($request) {
+            return $field->authorizedToPatch($request);
+        })->values();
+    }
+
     public function authorizedUpdateBulk(Request $request): self
     {
         return $this->filter(function (OrganicField $field) use ($request) {

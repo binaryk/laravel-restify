@@ -110,7 +110,7 @@ class BelongsToFieldTest extends IntegrationTest
         });
     }
 
-    public function test_unauthorized_via_callback_models_cannot_be_attached()
+    public function test_unauthorized_via_callback_models_cannot_be_attached(): void
     {
         PostWithUserRepository::partialMock()
             ->shouldReceive('fields')

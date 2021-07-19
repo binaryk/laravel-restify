@@ -2,7 +2,11 @@
 
 namespace Binaryk\LaravelRestify;
 
-use Binaryk\LaravelRestify\Http\Controllers\AuthController;
+use Binaryk\LaravelRestify\Http\Controllers\Auth\ForgotPasswordController;
+use Binaryk\LaravelRestify\Http\Controllers\Auth\LoginController;
+use Binaryk\LaravelRestify\Http\Controllers\Auth\RegisterController;
+use Binaryk\LaravelRestify\Http\Controllers\Auth\ResetPasswordController;
+use Binaryk\LaravelRestify\Http\Controllers\Auth\VerifyController;
 use Binaryk\LaravelRestify\Http\Middleware\EnsureJsonApiHeaderMiddleware;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -20,8 +24,6 @@ class RestifyApplicationServiceProvider extends ServiceProvider
         $this->authorization();
         $this->repositories();
         $this->authRoutes();
-
-        Restify::mountingRepositories();
     }
 
     /**
@@ -84,22 +86,22 @@ class RestifyApplicationServiceProvider extends ServiceProvider
                 'prefix' => $prefix,
                 'middleware' => [EnsureJsonApiHeaderMiddleware::class],
             ], function () {
-                Route::post('register', [AuthController::class, 'register'])
+                Route::post('register', RegisterController::class)
                     ->name('restify.register');
 
-                Route::post('login', [AuthController::class, 'login'])
+                Route::post('login', LoginController::class)
                     ->middleware('throttle:6,1')
                     ->name('restify.login');
 
-                Route::post('verify/{id}/{hash}', [AuthController::class, 'verify'])
+                Route::post('verify/{id}/{hash}', VerifyController::class)
                     ->middleware('throttle:6,1')
                     ->name('restify.verify');
 
-                Route::post('forgotPassword', [AuthController::class, 'forgotPassword'])
+                Route::post('forgotPassword', ForgotPasswordController::class)
                     ->middleware('throttle:6,1')
                     ->name('restify.forgotPassword');
 
-                Route::post('resetPassword', [AuthController::class, 'resetPassword'])
+                Route::post('resetPassword', ResetPasswordController::class)
                     ->middleware('throttle:6,1')
                     ->name('restify.resetPassword');
             });

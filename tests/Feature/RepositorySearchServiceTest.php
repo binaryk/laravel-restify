@@ -52,6 +52,21 @@ class RepositorySearchServiceTest extends IntegrationTest
             ->assertJsonCount(1, 'data');
     }
 
+    public function test_can_match_using_json_api_recommendation(): void
+    {
+        User::factory(4)->create();
+
+        UserRepository::$match = [
+            'id' => RestifySearchable::MATCH_ARRAY,
+        ];
+
+        $this->getJson('users?filter[id]=1,2,3')
+            ->assertJsonCount(3, 'data');
+
+        $this->getJson('users?filter[-id]=1,2,3')
+            ->assertJsonCount(1, 'data');
+    }
+
     public function test_can_match_range(): void
     {
         User::factory(4)->create();

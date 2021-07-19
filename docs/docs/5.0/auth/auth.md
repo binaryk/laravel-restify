@@ -47,6 +47,21 @@ All of these routes are handle by default, so you can just use them. However, yo
 
 Let's take a closer look over each route in part.
 
+## Publish controllers
+
+After installation user can publish controllers for full control on it.
+
+```shell script
+php artisan restify:publish-controllers
+```
+
+The command above does:
+
+-  Creates on path `app/Http/Controllers/Restify/Auth` controllers files
+-  Creates mail required folder on path `app/Mail/Restify/Auth` with `ForgotPasswordMail.php` file
+-  Creates specific blade file on `resources/views/Restify/Auth` with `reset-password.blade.php`
+-  Register the route in `app/Providers/RestifyServiceProvider.php`
+
 ## Register users
 
 - Define a register route to an action controller:

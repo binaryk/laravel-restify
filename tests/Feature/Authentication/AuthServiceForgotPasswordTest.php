@@ -59,6 +59,40 @@ class AuthServiceForgotPasswordTest extends IntegrationTest
         });
     }
 
+    public function test_email_was_sent_and_has_default_or_custom_url_callback()
+    {
+        Notification::fake();
+
+        $user = $this->register();
+        $request = new Request([], []);
+        $request->merge(['email' => $user->email]);
+
+        $this->authService->forgotPassword($request);
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $this->assertEquals(
+                "https://laravel-restify.dev/password/reset?token={$notification->token}&email={$user->email}",
+                call_user_func($notification::$createUrlCallback, $user, $notification->token),
+            );
+
+            return true;
+        });
+
+        $this->authService->forgotPassword(
+            $request,
+            'https://subdomain.domain.test/password/reset?token={token}&email={email}',
+        );
+
+        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+            $this->assertEquals(
+                "https://subdomain.domain.test/password/reset?token={$notification->token}&email={$user->email}",
+                call_user_func($notification::$createUrlCallback, $user, $notification->token),
+            );
+
+            return true;
+        });
+    }
+
     public function test_reset_password_invalid_payload()
     {
         $this->expectException(ValidationException::class);

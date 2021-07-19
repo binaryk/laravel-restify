@@ -1,4 +1,4 @@
-var versions = ["1.0", "2.0", "3.0", "4.0"];
+var versions = ["1.0", "2.0", "3.0", "4.0", "5.0"];
 
 module.exports = {
     title: 'Laravel Restify',
@@ -11,7 +11,7 @@ module.exports = {
         sidebarDepth: 1,
 
         nav: [
-            { text: 'Docs', link: '/docs/4.0/' },
+            { text: 'Docs', link: '/docs/5.0/' },
             {
                 text: "Version",
                 link: "/",
@@ -20,6 +20,7 @@ module.exports = {
                     { text: "2.0", link: "/docs/2.0/" },
                     { text: "3.0", link: "/docs/3.0/" },
                     { text: "4.0", link: "/docs/4.0/" },
+                    { text: "5.0", link: "/docs/5.0/" },
                     ]
             },
             { text: 'Git', link: 'https://github.com/BinarCode/laravel-restify', target: '_blank' },
@@ -31,6 +32,7 @@ module.exports = {
             "/docs/2.0/": require("./2.0"),
             "/docs/3.0/": require("./3.0"),
             "/docs/4.0/": require("./4.0"),
+            "/docs/5.0/": require("./5.0"),
         },
 
     },

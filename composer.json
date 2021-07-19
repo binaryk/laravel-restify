@@ -23,7 +23,7 @@
         "doctrine/dbal": "^2.10",
         "illuminate/contracts": "^8.37",
         "spatie/data-transfer-object": "^3.1",
-        "spatie/once": "^2.2"
+        "spatie/once": "^2.0|^3.0"
     },
     "require-dev": {
         "brianium/paratest": "^6.2",

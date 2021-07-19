@@ -22,15 +22,19 @@ abstract class Filter implements JsonSerializable
 
     public string $type = 'value';
 
-    public $column;
+    public ?string $title = null;
 
-    public $canSeeCallback;
+    public string $description = '';
+
+    public ?string $column = null;
+
+    public ?Closure $canSeeCallback = null;
 
     public static $uriKey;
 
-    public $relatedRepositoryKey;
+    public ?string $relatedRepositoryKey = null;
 
-    public $relatedRepositoryTitle;
+    public ?string $relatedRepositoryTitle = null;
 
     public bool $advanced = false;
 
@@ -43,15 +47,15 @@ abstract class Filter implements JsonSerializable
         }
 
         if ($this instanceof SearchableFilter) {
-            $this->type = SearchableFilter::TYPE;
+            $this->type = $this->type ?? SearchableFilter::TYPE;
         }
 
         if ($this instanceof SortableFilter) {
-            $this->type = SortableFilter::TYPE;
+            $this->type = $this->type ?? SortableFilter::TYPE;
         }
 
         if ($this instanceof MatchFilter) {
-            $this->type = MatchFilter::TYPE;
+            $this->type = $this->type ?? MatchFilter::TYPE;
         }
 
         $this->booted();
@@ -76,19 +80,46 @@ abstract class Filter implements JsonSerializable
         return $this->canSeeCallback ? call_user_func($this->canSeeCallback, $request) : true;
     }
 
-    public function key()
+    public function key(): string
     {
         return static::class;
     }
 
-    protected function getType()
+    protected function getType(): string
     {
         return $this->type;
     }
 
+    protected function title(): string
+    {
+        if ($this->title) {
+            return $this->title;
+        }
+
+        if ($column = $this->column()) {
+            return Str::title(Str::snake(Str::studly($column), ' '));
+        }
+
+        return $this->title ?? Str::title(Str::snake(class_basename(static::class), ' '));
+    }
+
+    protected function description(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @return string|null
+     * @deprecated use `column()` instead
+     */
     public function getColumn(): ?string
     {
         return $this->column;
+    }
+
+    public function column(): ?string
+    {
+        return $this->getColumn();
     }
 
     public function getQueryKey(): ?string
@@ -196,19 +227,19 @@ abstract class Filter implements JsonSerializable
         $serialized = with([
             'type' => $this->getType(),
             'advanced' => $this->advanced,
+            'title' => $this->title(),
+            'description' => $this->description(),
+            'column' => $this->column(),
+            'key' => static::uriKey(),
         ], function (array $initial) {
             return $this->relatedRepositoryKey ? array_merge($initial, [
                 'repository' => $this->getRelatedRepository(),
             ]) : $initial;
         });
 
-        if ($this->isAdvanced() === false) {
-            $serialized += ['column' => $this->getColumn()];
-        }
 
         if ($this->isAdvanced()) {
             $serialized = array_merge($serialized, [
-                'key' => static::uriKey(),
                 'rules' => $this->rules(app(Request::class)),
                 'options' => method_exists($this, 'options')
                     ? collect($this->options(app(Request::class)))->map(function ($key, $value) {

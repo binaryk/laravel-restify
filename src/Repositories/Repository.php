@@ -23,13 +23,11 @@ use Binaryk\LaravelRestify\Restify;
 use Binaryk\LaravelRestify\Services\Search\RepositorySearchService;
 use Binaryk\LaravelRestify\Traits\InteractWithSearch;
 use Binaryk\LaravelRestify\Traits\PerformsQueries;
-use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\ConditionallyLoadsAttributes;
 use Illuminate\Http\Resources\DelegatesToResource;
 use Illuminate\Pagination\AbstractPaginator;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -558,14 +556,6 @@ abstract class Repository implements RestifySearchable, JsonSerializable
             return $repository->authorizedToShow($request);
         })->values();
 
-        $paginator = Container::getInstance()->makeWith(LengthAwarePaginator::class, [
-            'items' => $items,
-            'total' => $items->count(),
-            'perPage' => $paginator->perPage(),
-            'currentPage' => $paginator->currentPage(),
-            'options' => $paginator->getOptions(),
-        ]);
-
         return response()->json(
             $this->filter([
                 'meta' => $this->when(
@@ -715,6 +705,35 @@ abstract class Repository implements RestifySearchable, JsonSerializable
             ->success();
     }
 
+    public function patch(RestifyRequest $request, $repositoryId)
+    {
+        DB::transaction(function () use ($request) {
+            $fields = $this->collectFields($request)
+                ->intersectByKeys($request->json()->keys())
+                ->forUpdate($request, $this)
+                ->authorizedPatch($request)
+                ->merge($this->collectFields($request)->forBelongsTo($request));
+
+            static::fillFields($request, $this->resource, $fields);
+
+            if (in_array(HasActionLogs::class, class_uses_recursive($this->resource))) {
+                Restify::actionLog()
+                    ->forRepositoryUpdated($this->resource, $request->user())
+                    ->save();
+            }
+
+            $this->resource->save();
+
+            return $fields;
+        })->each(
+            fn (Field $field) => $field->invokeAfter($request, $this->resource)
+        );
+
+        return $this->response()
+            ->data($this->serializeForShow($request))
+            ->success();
+    }
+
     public function updateBulk(RestifyRequest $request, $repositoryId, int $row)
     {
         $fields = $this->collectFields($request)
@@ -796,6 +815,17 @@ abstract class Repository implements RestifySearchable, JsonSerializable
         $this->authorizeToUpdate($request);
 
         $validator = static::validatorForUpdate($request, $this, $payload);
+
+        $validator->validate();
+
+        return $this;
+    }
+
+    public function allowToPatch(RestifyRequest $request, $payload = null): self
+    {
+        $this->authorizeToUpdate($request);
+
+        $validator = static::validatorForPatch($request, $this, $payload);
 
         $validator->validate();
 

@@ -20,10 +20,11 @@ Because there are many breaking changes an upgrade is not that easy. There are m
 - `getWiths` method was dropped - use `withs` instead
 ### Filters
 
-- `uriKey` - `string` returned type
+- `uriKey()` - `string` returned type
 - `BooleanFilter` - changed namespace to `Binaryk\LaravelRestify\Filters`
 - `SelectFilter` - changed namespace to `Binaryk\LaravelRestify\Filters\SelectFilter` and must implement the `options` method and return an array. The key should be the value the frontend can send and value would be the label frontend could use to display the select. ie: ['is_active' => 'Is Active']
 - There is no more `class` property for the advanced filters, the frontend should only send they `key` of the filter.
+- The `filters` method from the repository should return a list of `AdvancedFilers`.
   
 - The `resolve` method for the advanced filters now requires a `AdvancedFilterPayloadDto` instance.
 - The `value` argument for the third parameter for `AdvancedFilters` will be resolved from the `AdvancedFilterPayloadDto@value` method

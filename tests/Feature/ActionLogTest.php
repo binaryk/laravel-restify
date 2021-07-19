@@ -2,6 +2,7 @@
 
 namespace Binaryk\LaravelRestify\Tests\Feature;
 
+use Binaryk\LaravelRestify\Actions\Action;
 use Binaryk\LaravelRestify\Models\ActionLog;
 use Binaryk\LaravelRestify\Tests\Fixtures\User\User;
 use Binaryk\LaravelRestify\Tests\IntegrationTest;
@@ -83,6 +84,35 @@ class ActionLogTest extends IntegrationTest
 
         $this->assertDatabaseHas('action_logs', [
             'name' => ActionLog::ACTION_DELETED,
+            'actionable_type' => User::class,
+            'actionable_id' => 1,
+        ]);
+
+        $this->assertDatabaseCount('action_logs', 1);
+    }
+
+    public function test_can_create_log_for_repository_custom_action()
+    {
+        $this->authenticate();
+
+        $user = User::factory()->create();
+
+        $action = new class extends Action {
+            public static $uriKey = 'test action';
+        };
+
+        $log = ActionLog::forRepositoryAction(
+            $action,
+            $user,
+            $this->authenticatedAs
+        );
+
+        $log->save();
+
+        $this->assertInstanceOf(ActionLog::class, $log);
+
+        $this->assertDatabaseHas('action_logs', [
+            'name' => 'test action',
             'actionable_type' => User::class,
             'actionable_id' => 1,
         ]);

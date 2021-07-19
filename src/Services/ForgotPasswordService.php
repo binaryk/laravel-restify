@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Password;
 
 class ForgotPasswordService
 {
-    public static function make(Request $request)
+    public static function make(Request $request, string $url = null)
     {
-        ResetPassword::createUrlUsing(function ($notifiable, $token) {
-            $withToken = str_replace(['{token}'], $token, config('restify.auth.password_reset_url'));
+        ResetPassword::createUrlUsing(function ($notifiable, $token) use ($url) {
+            $withToken = str_replace(['{token}'], $token, $url ?? config('restify.auth.password_reset_url'));
             $withEmail = str_replace(['{email}'], $notifiable->getEmailForPasswordReset(), $withToken);
 
             return url($withEmail);
