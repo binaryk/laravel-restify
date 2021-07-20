@@ -15,9 +15,10 @@ class ForgotPasswordController extends Controller
     {
         $request->validate([
             'email' => ['required', 'email'],
+            'url' => ['sometimes', 'string'],
         ]);
 
-        /** * @var User $user */
+        /** @var User $user */
         $user = config('config.auth.user_model')::query()->where($request->only('email'))->firstOrFail();
 
         $token = Password::createToken($user);
@@ -25,7 +26,7 @@ class ForgotPasswordController extends Controller
         $url = str_replace(
             ['{token}', '{email}'],
             [$token, $user->email],
-            config('restify.auth.password_reset_url')
+            $request->input('url') ?? config('restify.auth.password_reset_url')
         );
 
         Mail::to($user->email)->send(

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 class ForgotPasswordControllerTest extends IntegrationTest
 {
-    public function test_user_can_use_forgot_password_method()
+    public function test_user_can_use_forgot_password_method_with_default_or_custom_url()
     {
         Mail::fake();
         Route::restifyAuth();
@@ -26,11 +26,31 @@ class ForgotPasswordControllerTest extends IntegrationTest
             'email' => 'vasile.papuc@binarode.com',
         ]);
 
-        $this->postJson(route('restify.forgotPassword', [
+        $this->postJson(route('restify.forgotPassword'), [
             'email' => $user->email,
-        ]))->assertOk();
+        ])->assertOk();
 
-        Mail::assertSent(ForgotPasswordMail::class);
+        Mail::assertSent(ForgotPasswordMail::class, function ($mail) use ($user) {
+            $mail->build();
+
+            return $mail->hasTo($user->email) &&
+                str_starts_with($mail->viewData['url'], '/password/reset');
+        });
+
+        $this->postJson(route('restify.forgotPassword'), [
+            'email' => $user->email,
+            'url' => 'https://subdomain.domain.test/password/reset?token={token}&email={email}',
+        ])->assertOk();
+
+        Mail::assertSent(ForgotPasswordMail::class, function ($mail) use ($user) {
+            $mail->build();
+
+            return $mail->hasTo($user->email) &&
+                str_starts_with(
+                    $mail->viewData['url'],
+                    'https://subdomain.domain.test/password/reset',
+                );
+        });
     }
 
     public function test_user_cant_get_reset_password_mail()
@@ -42,9 +62,9 @@ class ForgotPasswordControllerTest extends IntegrationTest
             'email' => 'vasile@binarcode.com',
         ]);
 
-        $this->postJson(route('restify.forgotPassword', [
+        $this->postJson(route('restify.forgotPassword'), [
             'email' => 'vasile@binarcode.com',
-        ]))->assertNotFound();
+        ])->assertNotFound();
 
         Mail::assertNotSent(ForgotPasswordMail::class);
     }
